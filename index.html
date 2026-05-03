@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>오늘의 사주 운세</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <p class="eyebrow">Daily Saju Fortune</p>
+      <h1>오늘의 사주 운세</h1>
+      <p class="subtitle">
+        생년월일과 태어난 시간을 입력하면 오늘의 기운을 바탕으로 간단한 운세 카드를 보여드려요.
+      </p>
+    </section>
+
+    <section class="card input-card" aria-labelledby="form-title">
+      <h2 id="form-title">내 정보 입력</h2>
+
+      <form id="fortuneForm">
+        <div class="form-grid">
+          <label>
+            이름
+            <input id="name" type="text" placeholder="예: 홍길동" required />
+          </label>
+
+          <label>
+            생년월일
+            <input id="birthDate" type="date" required />
+          </label>
+
+          <label>
+            태어난 시간
+            <select id="birthTime" required>
+              <option value="">선택하세요</option>
+              <option value="자시">자시 23:00 - 01:00</option>
+              <option value="축시">축시 01:00 - 03:00</option>
+              <option value="인시">인시 03:00 - 05:00</option>
+              <option value="묘시">묘시 05:00 - 07:00</option>
+              <option value="진시">진시 07:00 - 09:00</option>
+              <option value="사시">사시 09:00 - 11:00</option>
+              <option value="오시">오시 11:00 - 13:00</option>
+              <option value="미시">미시 13:00 - 15:00</option>
+              <option value="신시">신시 15:00 - 17:00</option>
+              <option value="유시">유시 17:00 - 19:00</option>
+              <option value="술시">술시 19:00 - 21:00</option>
+              <option value="해시">해시 21:00 - 23:00</option>
+            </select>
+          </label>
+
+          <label>
+            성별
+            <select id="gender" required>
+              <option value="">선택하세요</option>
+              <option value="여성">여성</option>
+              <option value="남성">남성</option>
+              <option value="선택 안 함">선택 안 함</option>
+            </select>
+          </label>
+        </div>
+
+        <button type="submit">오늘의 운세 보기</button>
+      </form>
+    </section>
+
+    <section id="result" class="card result-card hidden" aria-live="polite">
+      <div class="result-header">
+        <p class="eyebrow">Today's Fortune</p>
+        <h2 id="resultTitle">오늘의 운세</h2>
+        <p id="resultMeta" class="meta"></p>
+      </div>
+
+      <div class="fortune-list">
+        <article>
+          <span>총운</span>
+          <p id="overall"></p>
+        </article>
+        <article>
+          <span>애정운</span>
+          <p id="love"></p>
+        </article>
+        <article>
+          <span>금전운</span>
+          <p id="money"></p>
+        </article>
+        <article>
+          <span>일/학업운</span>
+          <p id="work"></p>
+        </article>
+        <article class="advice">
+          <span>오늘의 조언</span>
+          <p id="advice"></p>
+        </article>
+      </div>
+
+      <button id="resetButton" type="button" class="secondary">다시 보기</button>
+    </section>
+
+    <footer>
+      <p>
+        본 서비스는 오락과 자기성찰을 위한 콘텐츠이며, 중요한 의사결정의 근거로 사용하지 않는 것을 권장합니다.
+        입력한 정보는 서버에 저장되지 않습니다.
+      </p>
+    </footer>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

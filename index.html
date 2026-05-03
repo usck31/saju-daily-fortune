@@ -89,74 +89,84 @@
     </section>
 
     <section id="result" class="card result-card hidden" aria-live="polite">
-      <div class="result-header">
-        <p class="eyebrow">Today's Fortune</p>
-        <span id="selectedFortuneType" class="type-badge"></span>
-        <h2 id="resultTitle">오늘의 운세</h2>
-        <p id="resultMeta" class="meta"></p>
-      </div>
+      <div id="captureCard" class="capture-card">
+        <div class="capture-brand">
+          <strong>Daily Saju Fortune</strong>
+          <span>오늘의 사주 운세</span>
+        </div>
 
-      <section class="focus-card" aria-labelledby="focus-title">
-        <span id="focus-title">선택한 운세 자세히</span>
-        <p id="focusedFortune"></p>
-      </section>
+        <div class="result-header">
+          <p class="eyebrow">Today's Fortune</p>
+          <span id="selectedFortuneType" class="type-badge"></span>
+          <h2 id="resultTitle">오늘의 운세</h2>
+          <p id="resultMeta" class="meta"></p>
+        </div>
 
-      <section class="keyword-card" aria-labelledby="keyword-title">
-        <span id="keyword-title">오늘의 키워드</span>
-        <div id="keywordList" class="keyword-list"></div>
-      </section>
+        <section class="focus-card" aria-labelledby="focus-title">
+          <span id="focus-title">선택한 운세 자세히</span>
+          <p id="focusedFortune"></p>
+        </section>
 
-      <div class="fortune-summary" aria-label="오늘의 핵심 운세">
-        <article class="summary-card element-card">
-          <span>오늘의 오행 기운</span>
-          <strong id="elementEnergy"></strong>
-          <p id="elementMessage"></p>
-        </article>
+        <section class="keyword-card" aria-labelledby="keyword-title">
+          <span id="keyword-title">오늘의 키워드</span>
+          <div id="keywordList" class="keyword-list"></div>
+        </section>
 
-        <article class="summary-card">
-          <span>행운의 색</span>
-          <div class="lucky-color-row">
-            <i id="colorSwatch" aria-hidden="true"></i>
-            <strong id="luckyColor"></strong>
-          </div>
-        </article>
+        <div class="fortune-summary" aria-label="오늘의 핵심 운세">
+          <article class="summary-card element-card">
+            <span>오늘의 오행 기운</span>
+            <strong id="elementEnergy"></strong>
+            <p id="elementMessage"></p>
+          </article>
 
-        <article class="summary-card">
-          <span>행운의 숫자</span>
-          <strong id="luckyNumber"></strong>
-        </article>
-      </div>
+          <article class="summary-card">
+            <span>행운의 색</span>
+            <div class="lucky-color-row">
+              <i id="colorSwatch" aria-hidden="true"></i>
+              <strong id="luckyColor"></strong>
+            </div>
+          </article>
 
-      <div class="fortune-list">
-        <article>
-          <span>총운</span>
-          <p id="overall"></p>
-        </article>
-        <article>
-          <span>애정운</span>
-          <p id="love"></p>
-        </article>
-        <article>
-          <span>금전운</span>
-          <p id="money"></p>
-        </article>
-        <article>
-          <span>일/학업운</span>
-          <p id="work"></p>
-        </article>
-        <article class="caution">
-          <span>주의할 점</span>
-          <p id="caution"></p>
-        </article>
-        <article class="advice">
-          <span>오늘의 한마디</span>
-          <p id="advice"></p>
-        </article>
+          <article class="summary-card">
+            <span>행운의 숫자</span>
+            <strong id="luckyNumber"></strong>
+          </article>
+        </div>
+
+        <div class="fortune-list">
+          <article>
+            <span>총운</span>
+            <p id="overall"></p>
+          </article>
+          <article>
+            <span>애정운</span>
+            <p id="love"></p>
+          </article>
+          <article>
+            <span>금전운</span>
+            <p id="money"></p>
+          </article>
+          <article>
+            <span>일/학업운</span>
+            <p id="work"></p>
+          </article>
+          <article class="caution">
+            <span>주의할 점</span>
+            <p id="caution"></p>
+          </article>
+          <article class="advice">
+            <span>오늘의 한마디</span>
+            <p id="advice"></p>
+          </article>
+        </div>
+
+        <p class="capture-footer">오늘의 사주 운세 · Daily Saju Fortune</p>
       </div>
 
       <div class="result-actions">
         <button id="copyButton" type="button" class="secondary">결과 복사하기</button>
         <button id="shareButton" type="button">친구에게 공유하기</button>
+        <button id="saveImageButton" type="button" class="secondary">이미지로 저장하기</button>
         <button id="resetButton" type="button" class="ghost">처음으로 돌아가기</button>
       </div>
       <p id="copyStatus" class="copy-status" role="status" aria-live="polite"></p>
@@ -170,6 +180,8 @@
     </footer>
   </main>
 
+  <!-- html2canvas는 화면의 HTML 요소를 캔버스로 그려 PNG 이미지로 저장할 수 있게 도와주는 라이브러리입니다. -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

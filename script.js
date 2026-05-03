@@ -6,11 +6,14 @@ const resultSection = document.querySelector("#result");
 const resetButton = document.querySelector("#resetButton");
 const copyButton = document.querySelector("#copyButton");
 const shareButton = document.querySelector("#shareButton");
+const saveImageButton = document.querySelector("#saveImageButton");
 const copyStatus = document.querySelector("#copyStatus");
+const captureCard = document.querySelector("#captureCard");
 const colorSwatch = document.querySelector("#colorSwatch");
 const keywordList = document.querySelector("#keywordList");
 
 let latestFortuneText = "";
+let latestFortuneDate = "";
 let statusTimer;
 
 // 운세 종류별로 자세한 문장과 키워드 후보를 따로 둡니다.
@@ -340,6 +343,7 @@ function renderFortune(userData, fortune) {
   colorSwatch.style.backgroundColor = fortune.color.hex;
   renderKeywords(fortune.keywords);
   latestFortuneText = buildFortuneText(userData, fortune);
+  latestFortuneDate = fortune.todayKey;
 }
 
 // 폼을 제출하면 운세를 만들고 결과 카드를 보여줍니다.
@@ -405,9 +409,120 @@ shareButton.addEventListener("click", async () => {
   }
 });
 
+function openImageInNewWindow(dataUrl, fileName, imageWindow) {
+  const targetWindow = imageWindow ?? window.open("", "_blank");
+
+  if (!targetWindow) {
+    return false;
+  }
+
+  targetWindow.document.write(`
+    <!DOCTYPE html>
+    <html lang="ko">
+    <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>${fileName}</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 18px;
+          background: #f5f7f2;
+          font-family: sans-serif;
+          text-align: center;
+        }
+
+        img {
+          width: min(100%, 980px);
+          height: auto;
+          border-radius: 8px;
+          box-shadow: 0 18px 50px rgba(31, 41, 51, 0.16);
+        }
+
+        p {
+          color: #667085;
+          font-size: 14px;
+        }
+      </style>
+    </head>
+    <body>
+      <img src="${dataUrl}" alt="오늘의 사주 운세 결과 이미지" />
+      <p>이미지를 길게 누르거나 우클릭해서 저장해주세요.</p>
+    </body>
+    </html>
+  `);
+  targetWindow.document.close();
+  return true;
+}
+
+function downloadImage(dataUrl, fileName, fallbackWindow) {
+  const link = document.createElement("a");
+
+  if ("download" in link) {
+    link.href = dataUrl;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    return "downloaded";
+  }
+
+  return openImageInNewWindow(dataUrl, fileName, fallbackWindow) ? "opened" : "blocked";
+}
+
+// 결과 카드 전용 영역만 캡처해 PNG 이미지로 저장합니다.
+saveImageButton.addEventListener("click", async () => {
+  if (!latestFortuneText) return;
+
+  if (typeof html2canvas !== "function") {
+    showStatus("이미지 저장 기능을 불러오지 못했어요. 인터넷 연결을 확인해주세요.");
+    return;
+  }
+
+  const originalButtonText = saveImageButton.textContent;
+  const fileName = `saju-fortune-${latestFortuneDate || getTodayKey()}.png`;
+  const needsWindowFallback = !("download" in document.createElement("a"));
+  const fallbackWindow = needsWindowFallback ? window.open("", "_blank") : null;
+
+  saveImageButton.disabled = true;
+  saveImageButton.textContent = "이미지 만드는 중...";
+
+  try {
+    const canvas = await html2canvas(captureCard, {
+      backgroundColor: "#fffefa",
+      logging: false,
+      scale: Math.min(window.devicePixelRatio || 1, 2),
+      scrollX: 0,
+      scrollY: -window.scrollY,
+      useCORS: true
+    });
+
+    const dataUrl = canvas.toDataURL("image/png");
+    const result = downloadImage(dataUrl, fileName, fallbackWindow);
+
+    if (result === "opened") {
+      showStatus("새 창으로 이미지를 열었어요. 길게 눌러 저장해주세요.");
+    } else if (result === "blocked") {
+      showStatus("이미지 창을 열 수 없어요. 팝업 차단을 해제한 뒤 다시 시도해주세요.");
+    } else {
+      showStatus("이미지 저장 완료!");
+    }
+  } catch (error) {
+    if (fallbackWindow) {
+      fallbackWindow.close();
+    }
+
+    showStatus("이미지 저장에 실패했어요. 잠시 후 다시 시도해주세요.");
+  } finally {
+    saveImageButton.disabled = false;
+    saveImageButton.textContent = originalButtonText;
+  }
+});
+
 resetButton.addEventListener("click", () => {
   resultSection.classList.add("hidden");
   latestFortuneText = "";
+  latestFortuneDate = "";
   copyStatus.textContent = "";
 
   // 처음으로 돌아가는 동작을 초보자도 이해하기 쉽도록 폼까지 초기화합니다.

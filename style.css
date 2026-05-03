@@ -82,6 +82,10 @@ h1 {
   gap: 18px;
 }
 
+.fortune-type-field {
+  grid-column: 1 / -1;
+}
+
 label {
   display: grid;
   gap: 8px;
@@ -157,12 +161,76 @@ button:hover {
 }
 
 .result-header h2 {
-  margin-bottom: 8px;
+  margin: 8px 0;
 }
 
 .meta {
   margin: 0;
   color: var(--muted);
+}
+
+.type-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  border: 1px solid rgba(40, 114, 113, 0.18);
+  border-radius: 999px;
+  padding: 7px 13px;
+  color: var(--primary-dark);
+  background: #e5f2f0;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.focus-card,
+.keyword-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  margin-bottom: 14px;
+  padding: 18px;
+  background: #fff;
+}
+
+.focus-card {
+  background:
+    linear-gradient(135deg, rgba(40, 114, 113, 0.1), rgba(217, 119, 69, 0.1)),
+    #fff;
+}
+
+.focus-card > span,
+.keyword-card > span {
+  display: inline-flex;
+  margin-bottom: 8px;
+  color: var(--primary);
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.focus-card p {
+  margin: 0;
+  color: #31424a;
+  font-size: 17px;
+  line-height: 1.7;
+}
+
+.keyword-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.keyword-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  border: 1px solid rgba(217, 119, 69, 0.22);
+  border-radius: 999px;
+  margin: 0;
+  padding: 7px 12px;
+  color: #8a3f1d;
+  background: #fff7ed;
+  font-size: 14px;
+  font-weight: 900;
 }
 
 .fortune-summary {

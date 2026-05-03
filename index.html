@@ -4,6 +4,17 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>오늘의 사주 운세</title>
+  <meta property="og:title" content="오늘의 사주 운세" />
+  <meta property="og:description" content="이름과 생년월일을 입력하고 오늘의 운세를 가볍게 확인해보세요." />
+  <meta property="og:type" content="website" />
+  <!-- TODO: 배포 후 본인의 Vercel 주소로 바꿔주세요. 예: https://your-project.vercel.app/ -->
+  <meta property="og:url" content="https://your-vercel-url.vercel.app/" />
+  <!-- TODO: 배포 후 본인의 Vercel OG 이미지 주소로 바꿔주세요. 예: https://your-project.vercel.app/og-image.png -->
+  <meta property="og:image" content="https://your-vercel-url.vercel.app/og-image.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="오늘의 사주 운세" />
+  <meta name="twitter:description" content="이름과 생년월일을 입력하고 오늘의 운세를 가볍게 확인해보세요." />
+  <meta name="twitter:image" content="https://your-vercel-url.vercel.app/og-image.png" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -59,6 +70,18 @@
               <option value="선택 안 함">선택 안 함</option>
             </select>
           </label>
+
+          <label class="fortune-type-field">
+            운세 종류
+            <select id="fortuneType" required>
+              <option value="total">종합운</option>
+              <option value="love">연애운</option>
+              <option value="money">금전운</option>
+              <option value="work">일/학업운</option>
+              <option value="relationship">인간관계운</option>
+              <option value="condition">컨디션운</option>
+            </select>
+          </label>
         </div>
 
         <button type="submit">오늘의 운세 보기</button>
@@ -68,9 +91,20 @@
     <section id="result" class="card result-card hidden" aria-live="polite">
       <div class="result-header">
         <p class="eyebrow">Today's Fortune</p>
+        <span id="selectedFortuneType" class="type-badge"></span>
         <h2 id="resultTitle">오늘의 운세</h2>
         <p id="resultMeta" class="meta"></p>
       </div>
+
+      <section class="focus-card" aria-labelledby="focus-title">
+        <span id="focus-title">선택한 운세 자세히</span>
+        <p id="focusedFortune"></p>
+      </section>
+
+      <section class="keyword-card" aria-labelledby="keyword-title">
+        <span id="keyword-title">오늘의 키워드</span>
+        <div id="keywordList" class="keyword-list"></div>
+      </section>
 
       <div class="fortune-summary" aria-label="오늘의 핵심 운세">
         <article class="summary-card element-card">
@@ -123,7 +157,7 @@
       <div class="result-actions">
         <button id="copyButton" type="button" class="secondary">결과 복사하기</button>
         <button id="shareButton" type="button">친구에게 공유하기</button>
-        <button id="resetButton" type="button" class="ghost">다시 보기</button>
+        <button id="resetButton" type="button" class="ghost">처음으로 돌아가기</button>
       </div>
       <p id="copyStatus" class="copy-status" role="status" aria-live="polite"></p>
     </section>

@@ -1,4 +1,4 @@
-// 오늘의 사주 운세 v2
+// 오늘의 사주 운세 v3
 // 실제 만세력 계산이 아니라, 입력값과 오늘 날짜를 seed로 삼아 매일 같은 결과를 보여줍니다.
 
 const form = document.querySelector("#fortuneForm");
@@ -8,12 +8,83 @@ const copyButton = document.querySelector("#copyButton");
 const shareButton = document.querySelector("#shareButton");
 const copyStatus = document.querySelector("#copyStatus");
 const colorSwatch = document.querySelector("#colorSwatch");
+const keywordList = document.querySelector("#keywordList");
 
 let latestFortuneText = "";
 let statusTimer;
 
-// 각 운세 항목은 여러 문장 중 하나를 seed로 고릅니다.
-// 문장을 늘리면 같은 로직으로 더 다양한 결과를 만들 수 있습니다.
+// 운세 종류별로 자세한 문장과 키워드 후보를 따로 둡니다.
+// 문장을 추가하면 같은 로직으로 더 풍성한 운세를 만들 수 있습니다.
+const fortuneTypes = {
+  total: {
+    label: "종합운",
+    description: "오늘의 전체 흐름을 넓게 살펴봅니다.",
+    details: [
+      "오늘은 여러 일이 한꺼번에 보이더라도 우선순위를 정하면 흐름이 안정됩니다. 작은 정리와 짧은 대화가 하루의 방향을 좋게 바꿉니다.",
+      "몸과 마음의 속도를 맞추는 것이 중요합니다. 서두르기보다 지금 할 수 있는 일을 하나씩 끝내면 만족감이 커집니다.",
+      "새로운 기회는 크게 다가오기보다 작은 힌트처럼 나타납니다. 지나치기 쉬운 제안이나 메시지를 차분히 살펴보세요.",
+      "익숙한 루틴 안에서 작은 변화를 주기 좋은 날입니다. 평소와 다른 선택 하나가 기분 좋은 전환점이 됩니다."
+    ],
+    keywords: ["정리", "균형", "작은 기회", "차분함", "새 흐름", "확인", "전환", "꾸준함"]
+  },
+  love: {
+    label: "연애운",
+    description: "관계, 표현, 만남의 흐름을 자세히 봅니다.",
+    details: [
+      "마음을 표현할 때는 솔직함보다 온도가 더 중요합니다. 짧은 말이라도 다정하게 건네면 관계의 긴장이 부드럽게 풀립니다.",
+      "새로운 만남에는 가벼운 호기심이 행운을 부릅니다. 상대를 빨리 판단하기보다 편안한 질문으로 대화를 이어가보세요.",
+      "이미 가까운 사람이 있다면 익숙함 속에서 놓친 배려를 챙겨보세요. 작은 고마움 표현이 오늘의 관계운을 밝게 만듭니다.",
+      "오해가 생기기 쉬운 날이니 메시지는 짧게 끊기보다 맥락을 함께 전하는 것이 좋습니다. 말의 끝을 부드럽게 남겨보세요."
+    ],
+    keywords: ["대화", "표현", "배려", "만남", "호감", "속도 조절", "진심", "부드러움"]
+  },
+  money: {
+    label: "금전운",
+    description: "소비, 저축, 기회, 신중함을 중심으로 봅니다.",
+    details: [
+      "오늘은 버는 운보다 지키는 운이 더 강합니다. 작은 지출을 점검하고 필요한 것과 갖고 싶은 것을 나누어 생각해보세요.",
+      "돈과 관련된 제안은 겉으로 좋아 보여도 조건을 천천히 확인하는 편이 좋습니다. 신중함이 손실을 막아줍니다.",
+      "저축이나 정산처럼 미뤄둔 금전 관리를 하기 좋은 날입니다. 숫자를 직접 확인하면 불안이 줄어듭니다.",
+      "새로운 기회가 보이더라도 바로 결정하기보다 비교 목록을 만들어보세요. 오늘의 행운은 차분한 판단 쪽에 있습니다."
+    ],
+    keywords: ["절약", "점검", "저축", "신중함", "비교", "정산", "기회", "계획"]
+  },
+  work: {
+    label: "일/학업운",
+    description: "업무, 공부, 집중력, 성취 흐름을 봅니다.",
+    details: [
+      "쉬운 일부터 시작하면 집중력이 천천히 올라옵니다. 처음부터 어려운 과제에 매달리기보다 리듬을 만드는 것이 좋습니다.",
+      "오늘은 결과보다 과정을 정리할수록 운이 붙습니다. 해야 할 일을 세 가지로 줄이면 실행력이 좋아집니다.",
+      "혼자 막힌 부분은 질문을 통해 빠르게 풀릴 수 있습니다. 도움을 요청하는 태도가 오히려 좋은 평가로 이어집니다.",
+      "반복되는 작업 안에서 개선점을 발견하기 좋은 날입니다. 작은 자동화나 정리가 내일의 시간을 아껴줍니다."
+    ],
+    keywords: ["집중", "우선순위", "질문", "정리", "성취", "반복 개선", "기록", "마감"]
+  },
+  relationship: {
+    label: "인간관계운",
+    description: "주변 사람, 협업, 거리감, 신뢰를 살펴봅니다.",
+    details: [
+      "오늘은 관계의 넓이보다 깊이가 중요합니다. 모두에게 맞추기보다 꼭 필요한 사람에게 충분히 집중해보세요.",
+      "협업에서는 역할을 분명히 나누면 불필요한 오해가 줄어듭니다. 말하지 않아도 알겠지라는 생각은 잠시 내려두세요.",
+      "어색했던 사람과는 가벼운 안부가 좋은 시작점이 됩니다. 큰 대화보다 부담 없는 한마디가 분위기를 바꿉니다.",
+      "거절이 필요한 상황에서는 이유를 길게 설명하기보다 가능한 범위를 분명하게 말하는 것이 좋습니다."
+    ],
+    keywords: ["신뢰", "협업", "거리감", "안부", "경청", "역할", "분명함", "화해"]
+  },
+  condition: {
+    label: "컨디션운",
+    description: "몸과 마음의 리듬, 휴식, 회복을 봅니다.",
+    details: [
+      "몸의 신호를 가볍게 넘기지 않는 것이 오늘의 핵심입니다. 피로가 쌓였다면 짧은 휴식이라도 먼저 챙겨보세요.",
+      "컨디션은 오전보다 오후에 안정되기 쉽습니다. 중요한 일은 몸이 풀린 뒤에 처리하면 부담이 줄어듭니다.",
+      "마음이 복잡할 때는 환경을 정리하는 것이 도움이 됩니다. 책상 위나 가방 속을 정돈하면 생각도 가벼워집니다.",
+      "무리해서 끌고 가기보다 회복 시간을 확보할수록 하루의 만족도가 올라갑니다. 물, 식사, 수면 리듬을 확인해보세요."
+    ],
+    keywords: ["휴식", "회복", "수면", "산책", "호흡", "정돈", "리듬", "가벼움"]
+  }
+};
+
+// 기본 운세 항목도 여러 문장 중 하나를 seed로 고릅니다.
 const fortunes = {
   overall: [
     "오늘은 흐름을 억지로 바꾸기보다 자연스럽게 따라갈 때 좋은 결과가 생기는 날입니다.",
@@ -137,6 +208,21 @@ function pickBySeed(seed, list) {
   return list[getSeededIndex(seed, list.length)];
 }
 
+// seed를 조금씩 바꿔가며 중복 없는 키워드 3개를 고릅니다.
+function pickManyBySeed(seed, list, count) {
+  const picked = [];
+
+  for (let i = 0; picked.length < count && i < list.length * 2; i += 1) {
+    const candidate = pickBySeed(`${seed}-keyword-${i}`, list);
+
+    if (!picked.includes(candidate)) {
+      picked.push(candidate);
+    }
+  }
+
+  return picked;
+}
+
 function getTodayKey() {
   const today = new Date();
   const year = today.getFullYear();
@@ -146,15 +232,19 @@ function getTodayKey() {
   return `${year}-${month}-${day}`;
 }
 
-// 입력값과 오늘 날짜를 하나의 seed로 묶어 운세 결과 객체를 만듭니다.
-function createFortune({ name, birthDate, birthTime, gender }) {
+// 입력값, 오늘 날짜, 운세 종류를 하나의 seed로 묶어 운세 결과 객체를 만듭니다.
+function createFortune({ name, birthDate, birthTime, gender, fortuneType }) {
   const todayKey = getTodayKey();
-  const seed = `${name}-${birthDate}-${birthTime}-${gender}-${todayKey}`;
+  const selectedType = fortuneTypes[fortuneType] ?? fortuneTypes.total;
+  const seed = `${name}-${birthDate}-${birthTime}-${gender}-${fortuneType}-${todayKey}`;
   const element = pickBySeed(`${seed}-element`, elementEnergies);
   const color = pickBySeed(`${seed}-color`, luckyColors);
 
   return {
     todayKey,
+    selectedType,
+    focusedFortune: pickBySeed(`${seed}-focused`, selectedType.details),
+    keywords: pickManyBySeed(seed, selectedType.keywords, 3),
     element,
     color,
     luckyNumber: (hashSeed(`${seed}-number`) % 99) + 1,
@@ -170,13 +260,15 @@ function createFortune({ name, birthDate, birthTime, gender }) {
 // 화면에 보이는 운세를 복사/공유하기 좋은 문장으로 정리합니다.
 function buildFortuneText(userData, fortune) {
   return [
-    `${userData.name}님의 오늘 운세 (${fortune.todayKey})`,
+    `${userData.name}님의 ${fortune.selectedType.label} (${fortune.todayKey})`,
     `생년월일: ${userData.birthDate}`,
     `태어난 시간: ${userData.birthTime}`,
+    `오늘의 키워드: ${fortune.keywords.join(", ")}`,
     `오늘의 오행 기운: ${fortune.element.title}`,
     `행운의 색: ${fortune.color.name}`,
     `행운의 숫자: ${fortune.luckyNumber}`,
     "",
+    `[${fortune.selectedType.label}] ${fortune.focusedFortune}`,
     `[총운] ${fortune.overall}`,
     `[애정운] ${fortune.love}`,
     `[금전운] ${fortune.money}`,
@@ -217,10 +309,23 @@ async function copyToClipboard(text) {
   }
 }
 
+function renderKeywords(keywords) {
+  keywordList.innerHTML = "";
+
+  keywords.forEach((keyword) => {
+    const badge = document.createElement("span");
+    badge.className = "keyword-badge";
+    badge.textContent = keyword;
+    keywordList.appendChild(badge);
+  });
+}
+
 // 계산된 운세 결과를 HTML 요소에 넣어 화면에 표시합니다.
 function renderFortune(userData, fortune) {
-  document.querySelector("#resultTitle").textContent = `${userData.name}님의 오늘 운세`;
+  document.querySelector("#selectedFortuneType").textContent = fortune.selectedType.label;
+  document.querySelector("#resultTitle").textContent = `${userData.name}님의 ${fortune.selectedType.label}`;
   document.querySelector("#resultMeta").textContent = `${userData.birthDate} · ${userData.birthTime} · ${fortune.todayKey}`;
+  document.querySelector("#focusedFortune").textContent = fortune.focusedFortune;
   document.querySelector("#elementEnergy").textContent = fortune.element.title;
   document.querySelector("#elementMessage").textContent = fortune.element.message;
   document.querySelector("#luckyColor").textContent = fortune.color.name;
@@ -233,6 +338,7 @@ function renderFortune(userData, fortune) {
   document.querySelector("#advice").textContent = fortune.advice;
 
   colorSwatch.style.backgroundColor = fortune.color.hex;
+  renderKeywords(fortune.keywords);
   latestFortuneText = buildFortuneText(userData, fortune);
 }
 
@@ -244,7 +350,8 @@ form.addEventListener("submit", (event) => {
     name: document.querySelector("#name").value.trim(),
     birthDate: document.querySelector("#birthDate").value,
     birthTime: document.querySelector("#birthTime").value,
-    gender: document.querySelector("#gender").value
+    gender: document.querySelector("#gender").value,
+    fortuneType: document.querySelector("#fortuneType").value
   };
 
   const fortune = createFortune(userData);
@@ -302,6 +409,8 @@ resetButton.addEventListener("click", () => {
   resultSection.classList.add("hidden");
   latestFortuneText = "";
   copyStatus.textContent = "";
+
+  // 처음으로 돌아가는 동작을 초보자도 이해하기 쉽도록 폼까지 초기화합니다.
   form.reset();
   window.scrollTo({ top: 0, behavior: "smooth" });
 });

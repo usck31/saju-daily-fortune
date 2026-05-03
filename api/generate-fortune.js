@@ -13,13 +13,53 @@ const REQUIRED_FIELDS = [
   "message"
 ];
 
-function logServerError(message, error) {
-  console.error(`[generate-fortune] ${message}`, {
+function createRequestId() {
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function safeStringify(data) {
+  try {
+    return JSON.stringify(data);
+  } catch (error) {
+    return JSON.stringify({ stringifyError: error?.message ?? "unknown stringify error" });
+  }
+}
+
+function getRequestShape(data) {
+  if (!data || typeof data !== "object") {
+    return {
+      bodyType: typeof data,
+      receivedFields: []
+    };
+  }
+
+  return {
+    bodyType: Array.isArray(data) ? "array" : "object",
+    receivedFields: Object.keys(data),
+    fieldTypes: Object.fromEntries(Object.entries(data).map(([key, value]) => [key, typeof value]))
+  };
+}
+
+function getErrorDetails(error) {
+  return {
     name: error?.name,
     message: error?.message,
     status: error?.status,
     code: error?.code,
-    type: error?.type
+    type: error?.type,
+    param: error?.param,
+    requestId: error?.request_id
+  };
+}
+
+function logError(event, details = {}) {
+  console.error(`[generate-fortune] ${event} ${safeStringify(details)}`);
+}
+
+function logServerError(event, error, details = {}) {
+  logError(event, {
+    ...details,
+    error: getErrorDetails(error)
   });
 }
 
@@ -35,7 +75,7 @@ function parseRequestBody(body) {
   return body;
 }
 
-function validateInput(data) {
+function validateInput(data, requestId) {
   const requiredInputFields = ["name", "birthDate", "birthTime", "gender", "today"];
   const missingFields = [];
 
@@ -46,9 +86,10 @@ function validateInput(data) {
   }
 
   if (missingFields.length > 0) {
-    console.error("[generate-fortune] Request fields missing", {
+    logError("Request fields missing", {
+      requestId,
       missingFields,
-      receivedFields: Object.keys(data ?? {})
+      requestShape: getRequestShape(data)
     });
     return `${missingFields.join(", ")} 값이 필요합니다.`;
   }
@@ -130,13 +171,22 @@ function buildPrompt(data) {
 }
 
 export default async function handler(req, res) {
+  const requestId = createRequestId();
+
   if (req.method !== "POST") {
+    logError("Invalid method", {
+      requestId,
+      method: req.method
+    });
     res.setHeader("Allow", "POST");
     return res.status(405).json({ error: "POST 요청만 사용할 수 있습니다." });
   }
 
   if (!process.env.OPENAI_API_KEY) {
-    console.error("[generate-fortune] OPENAI_API_KEY is missing");
+    logError("OPENAI_API_KEY is missing", {
+      requestId,
+      envVar: "OPENAI_API_KEY"
+    });
     return res.status(500).json({ error: "OPENAI_API_KEY is missing" });
   }
 
@@ -145,11 +195,15 @@ export default async function handler(req, res) {
   try {
     data = parseRequestBody(req.body);
   } catch (error) {
-    logServerError("Request body JSON parse failed", error);
+    logServerError("Request body JSON parse failed", error, {
+      requestId,
+      bodyType: typeof req.body,
+      contentType: req.headers?.["content-type"]
+    });
     return res.status(400).json({ error: "요청 JSON을 읽을 수 없습니다." });
   }
 
-  const inputError = validateInput(data);
+  const inputError = validateInput(data, requestId);
 
   if (inputError) {
     return res.status(400).json({ error: inputError });
@@ -183,8 +237,10 @@ export default async function handler(req, res) {
     try {
       fortune = JSON.parse(outputText);
     } catch (error) {
-      console.error("[generate-fortune] AI response JSON parse failed", {
+      logError("JSON parse failed", {
+        requestId,
         message: error?.message,
+        outputLength: outputText.length,
         outputPreview: outputText.slice(0, 500)
       });
       return res.status(500).json({ error: "AI 응답을 JSON으로 파싱하지 못했습니다." });
@@ -193,11 +249,18 @@ export default async function handler(req, res) {
     try {
       return res.status(200).json(normalizeFortuneJson(fortune));
     } catch (error) {
-      logServerError("AI response validation failed", error);
+      logServerError("JSON validation failed", error, {
+        requestId,
+        responseShape: getRequestShape(fortune),
+        requiredFields: REQUIRED_FIELDS
+      });
       return res.status(500).json({ error: `AI 응답 형식이 올바르지 않습니다. ${error.message}` });
     }
   } catch (error) {
-    logServerError("OpenAI request failed", error);
+    logServerError("OpenAI API call failed", error, {
+      requestId,
+      model: "gpt-4.1-mini"
+    });
     return res.status(500).json({ error: "AI 운세 생성 중 오류가 발생했습니다." });
   }
 }

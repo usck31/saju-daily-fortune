@@ -1,8 +1,6 @@
-// 오늘의 사주 운세
-// OpenAI API 운세 생성을 먼저 시도하고, 실패하면 브라우저에서 seed 기반 기본 운세를 보여줍니다.
-
 const form = document.querySelector("#fortuneForm");
 const submitButton = form.querySelector("button[type='submit']");
+const birthTimeSelect = document.querySelector("#birthTime");
 const resultSection = document.querySelector("#result");
 const resetButton = document.querySelector("#resetButton");
 const shareButton = document.querySelector("#shareButton");
@@ -16,7 +14,6 @@ const AI_USAGE_STORAGE_KEY = "sajuDailyAiUsage";
 let latestFortuneText = "";
 let statusTimer;
 
-// AI 생성에 실패했을 때 사용할 기본 운세 문장입니다.
 const fortunes = {
   overall: [
     "오늘은 흐름을 억지로 바꾸기보다 자연스럽게 따라갈 때 좋은 결과가 생기는 날입니다.",
@@ -133,7 +130,30 @@ const colorHexMap = {
   검정: "#111827"
 };
 
-// 같은 seed가 들어오면 항상 같은 숫자가 나와서, fallback 운세가 하루 동안 유지됩니다.
+const birthTimeOptions = {
+  ja: { branch: "자시", label: "자시 (23:30~01:29)" },
+  chuk: { branch: "축시", label: "축시 (01:30~03:29)" },
+  in: { branch: "인시", label: "인시 (03:30~05:29)" },
+  myo: { branch: "묘시", label: "묘시 (05:30~07:29)" },
+  jin: { branch: "진시", label: "진시 (07:30~09:29)" },
+  sa: { branch: "사시", label: "사시 (09:30~11:29)" },
+  o: { branch: "오시", label: "오시 (11:30~13:29)" },
+  mi: { branch: "미시", label: "미시 (13:30~15:29)" },
+  sin: { branch: "신시", label: "신시 (15:30~17:29)" },
+  yu: { branch: "유시", label: "유시 (17:30~19:29)" },
+  sul: { branch: "술시", label: "술시 (19:30~21:29)" },
+  hae: { branch: "해시", label: "해시 (21:30~23:29)" },
+  unknown: { branch: "모름", label: "모름" }
+};
+
+birthTimeSelect.addEventListener("invalid", () => {
+  birthTimeSelect.setCustomValidity("태어난 시간대를 선택해주세요.");
+});
+
+birthTimeSelect.addEventListener("change", () => {
+  birthTimeSelect.setCustomValidity("");
+});
+
 function hashSeed(seed) {
   let hash = 2166136261;
 
@@ -165,6 +185,10 @@ function pickManyBySeed(seed, list, count) {
   }
 
   return picked;
+}
+
+function getBirthTimeInfo(code) {
+  return birthTimeOptions[code] ?? birthTimeOptions.unknown;
 }
 
 function getTodayKey() {
@@ -249,7 +273,7 @@ function normalizeAiFortune(aiFortune) {
     keywords: aiFortune.keywords,
     element: {
       title: aiFortune.energy,
-      message: `AI가 오늘의 흐름으로 ${aiFortune.energy} 기운을 골랐어요. 정확한 사주 분석이 아니라 가볍게 참고하는 운세입니다.`
+      message: `오늘은 ${aiFortune.energy} 기운이 은근히 두드러져요. 정확한 사주 분석이 아니라 하루를 돌아보는 가벼운 힌트로 참고해 주세요.`
     },
     color: {
       name: aiFortune.luckyColor,
@@ -275,13 +299,27 @@ async function fetchAiFortune(userData) {
       name: userData.name,
       birthDate: userData.birthDate,
       birthTime: userData.birthTime,
+      birthTimeBranch: userData.birthTimeBranch,
       gender: userData.gender,
       today: getTodayKey()
     })
   });
 
   if (!response.ok) {
-    throw new Error("AI fortune request failed");
+    let errorBody = {};
+
+    try {
+      errorBody = await response.json();
+    } catch (error) {
+      errorBody = { error: "응답 JSON을 읽을 수 없습니다." };
+    }
+
+    console.error("[fortune] /api/generate-fortune failed", {
+      status: response.status,
+      error: errorBody.error
+    });
+
+    throw new Error(errorBody.error || "AI fortune request failed");
   }
 
   return response.json();
@@ -289,9 +327,8 @@ async function fetchAiFortune(userData) {
 
 function buildFortuneText(userData, fortune) {
   return [
-    `${userData.name}님의 오늘 운세 (${fortune.todayKey})`,
-    `생년월일: ${userData.birthDate}`,
-    `태어난 시간: ${userData.birthTime}`,
+    `${userData.name}님의 오늘 운세`,
+    `${fortune.todayKey} 기준`,
     `오늘의 키워드: ${fortune.keywords.join(", ")}`,
     `오늘의 오행 기운: ${fortune.element.title}`,
     `행운의 색: ${fortune.color.name}`,
@@ -332,7 +369,7 @@ function renderKeywords(keywords) {
 
 function renderFortune(userData, fortune) {
   document.querySelector("#resultTitle").textContent = `${userData.name}님의 오늘 운세`;
-  document.querySelector("#resultMeta").textContent = `${userData.birthDate} · ${userData.birthTime} · ${fortune.todayKey}`;
+  document.querySelector("#resultMeta").textContent = `${fortune.todayKey} 기준으로 가볍게 살펴본 오늘의 흐름`;
   document.querySelector("#elementEnergy").textContent = fortune.element.title;
   document.querySelector("#elementMessage").textContent = fortune.element.message;
   document.querySelector("#luckyColor").textContent = fortune.color.name;
@@ -352,10 +389,12 @@ function renderFortune(userData, fortune) {
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
 
+  const birthTimeInfo = getBirthTimeInfo(birthTimeSelect.value);
   const userData = {
     name: document.querySelector("#name").value.trim(),
     birthDate: document.querySelector("#birthDate").value,
-    birthTime: document.querySelector("#birthTime").value,
+    birthTime: birthTimeInfo.label,
+    birthTimeBranch: birthTimeInfo.branch,
     gender: document.querySelector("#gender").value
   };
 
@@ -378,9 +417,9 @@ form.addEventListener("submit", async (event) => {
     fortune = createFortune(userData);
 
     if (error.message === "Daily AI limit reached") {
-      showStatus("오늘 AI 운세 생성 횟수를 모두 사용해 기본 운세를 보여드려요.", false);
+      showStatus("오늘의 AI 운세 생성 횟수를 모두 사용해 기본 운세로 안내드려요.", false);
     } else {
-      showStatus("AI 운세 생성에 실패해 기본 운세를 보여드려요.", false);
+      showStatus("AI 운세를 불러오지 못해 기본 운세로 안내드려요.", false);
     }
   } finally {
     submitButton.disabled = false;
@@ -396,7 +435,7 @@ shareButton.addEventListener("click", async () => {
   if (!latestFortuneText) return;
 
   if (!navigator.share) {
-    showStatus("이 브라우저는 공유창을 지원하지 않아요.", true);
+    showStatus("이 브라우저에서는 공유창을 열 수 없어요.", true);
     return;
   }
 
@@ -408,7 +447,7 @@ shareButton.addEventListener("click", async () => {
     showStatus("공유창을 열었어요.", true);
   } catch (error) {
     if (error.name !== "AbortError") {
-      showStatus("공유창을 열지 못했어요. 잠시 후 다시 시도해주세요.", true);
+      showStatus("공유창을 열지 못했어요. 잠시 후 다시 시도해 주세요.", true);
     }
   }
 });

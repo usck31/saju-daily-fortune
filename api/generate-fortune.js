@@ -14,7 +14,7 @@ const REQUIRED_FIELDS = [
 ];
 
 function createRequestId() {
-  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+  return globalThis.crypto?.randomUUID?.() ?? Date.now().toString(36);
 }
 
 function safeStringify(data) {
@@ -76,7 +76,7 @@ function parseRequestBody(body) {
 }
 
 function validateInput(data, requestId) {
-  const requiredInputFields = ["name", "birthDate", "birthTime", "gender", "today"];
+  const requiredInputFields = ["name", "birthDate", "birthTime", "birthTimeBranch", "gender", "today"];
   const missingFields = [];
 
   for (const field of requiredInputFields) {
@@ -150,6 +150,11 @@ function normalizeFortuneJson(fortune) {
 }
 
 function buildPrompt(data) {
+  const unknownTimeGuide =
+    data.birthTimeBranch === "모름"
+      ? "태어난 시간대는 모름으로 처리하고, 생년월일 중심의 가벼운 운세로 작성하세요."
+      : `태어난 시간대는 ${data.birthTime}입니다. 정확한 시각이 아니라 시간대 정보로만 참고하세요.`;
+
   return [
     "아래 사용자의 정보를 참고해서 오늘의 운세를 만들어주세요.",
     "정확한 사주 분석이라고 주장하지 말고, 오락과 자기성찰용 콘텐츠라는 전제를 유지하세요.",
@@ -164,7 +169,9 @@ function buildPrompt(data) {
     "",
     `이름: ${data.name}`,
     `생년월일: ${data.birthDate}`,
-    `태어난 시간: ${data.birthTime}`,
+    `태어난 시간대: ${data.birthTime}`,
+    `태어난 시간대 분류: ${data.birthTimeBranch}`,
+    unknownTimeGuide,
     `성별: ${data.gender}`,
     `오늘 날짜: ${data.today}`
   ].join("\n");

@@ -4,13 +4,11 @@
 
 :root {
   --bg: #f5f7f2;
-  --surface: #fffefa;
   --surface-soft: #f0f7f6;
   --text: #1f2933;
   --muted: #667085;
   --primary: #287271;
   --primary-dark: #164e4d;
-  --accent: #d97745;
   --line: rgba(31, 41, 51, 0.12);
   --shadow: 0 18px 50px rgba(31, 41, 51, 0.12);
 }

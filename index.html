@@ -72,6 +72,27 @@
         <p id="resultMeta" class="meta"></p>
       </div>
 
+      <div class="fortune-summary" aria-label="오늘의 핵심 운세">
+        <article class="summary-card element-card">
+          <span>오늘의 오행 기운</span>
+          <strong id="elementEnergy"></strong>
+          <p id="elementMessage"></p>
+        </article>
+
+        <article class="summary-card">
+          <span>행운의 색</span>
+          <div class="lucky-color-row">
+            <i id="colorSwatch" aria-hidden="true"></i>
+            <strong id="luckyColor"></strong>
+          </div>
+        </article>
+
+        <article class="summary-card">
+          <span>행운의 숫자</span>
+          <strong id="luckyNumber"></strong>
+        </article>
+      </div>
+
       <div class="fortune-list">
         <article>
           <span>총운</span>
@@ -89,13 +110,22 @@
           <span>일/학업운</span>
           <p id="work"></p>
         </article>
+        <article class="caution">
+          <span>주의할 점</span>
+          <p id="caution"></p>
+        </article>
         <article class="advice">
-          <span>오늘의 조언</span>
+          <span>오늘의 한마디</span>
           <p id="advice"></p>
         </article>
       </div>
 
-      <button id="resetButton" type="button" class="secondary">다시 보기</button>
+      <div class="result-actions">
+        <button id="copyButton" type="button" class="secondary">결과 복사하기</button>
+        <button id="shareButton" type="button">친구에게 공유하기</button>
+        <button id="resetButton" type="button" class="ghost">다시 보기</button>
+      </div>
+      <p id="copyStatus" class="copy-status" role="status" aria-live="polite"></p>
     </section>
 
     <footer>
